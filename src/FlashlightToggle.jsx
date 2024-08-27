@@ -1,51 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import './FlashlightToggle.scss';
+import React, { useState } from 'react';
+import { Button, View, StyleSheet } from 'react-native';
+import Torch from 'react-native-torch';
 
 const FlashlightToggle = () => {
-  const [isFlashing, setIsFlashing] = useState(false);
+  const [isTorchOn, setIsTorchOn] = useState(false);
 
-  useEffect(() => {
-    let interval;
-
-    if (isFlashing) {
-      interval = setInterval(() => {
-        toggleFlashlight();
-      }, 500); // Taschenlampe alle 500 ms umschalten
-    }
-
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  }, [isFlashing]);
-
-  const toggleFlashlight = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      const track = stream.getVideoTracks()[0];
-      const imageCapture = new ImageCapture(track);
-      const capabilities = await imageCapture.getPhotoCapabilities();
-
-      if (capabilities.fillLightMode.includes('flash')) {
-        await track.applyConstraints({ advanced: [{ torch: true }] });
-        await new Promise((resolve) => setTimeout(resolve, 200)); // Taschenlampe für 200 ms einschalten
-        await track.applyConstraints({ advanced: [{ torch: false }] });
-      }
-
-      track.stop();
-    } catch (error) {
-      console.error('Fehler beim Umschalten der Taschenlampe:', error);
-    }
+  const toggleTorch = () => {
+    Torch.switchState(!isTorchOn);
+    setIsTorchOn(!isTorchOn);
   };
 
   return (
-    <div>
-      <button onClick={() => setIsFlashing(!isFlashing)}>
-        {isFlashing ? 'Stop' : 'Start'}
-      </button>
-    </div>
+    <View style={styles.container}>
+      <Button
+        title={isTorchOn ? "Turn Off" : "Turn On"}
+        onPress={toggleTorch}
+      />
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
 
 export default FlashlightToggle;
